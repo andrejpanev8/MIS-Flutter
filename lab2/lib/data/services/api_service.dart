@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:lab2/data/models/joke_types_model.dart';
 
-import '../models/joke_model.dart';
-
 class ApiService {
   static Future<List<dynamic>> getJokeTypesFromAPI() async {
     final response = await http

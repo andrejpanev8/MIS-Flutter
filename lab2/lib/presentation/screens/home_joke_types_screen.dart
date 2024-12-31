@@ -6,6 +6,7 @@ import 'package:lab2/providers/jokes_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/models/joke_model.dart';
+import '../../data/services/notification_service.dart';
 
 class HomeJokeTypes extends StatelessWidget {
   const HomeJokeTypes({super.key});
@@ -44,6 +45,11 @@ class HomeJokeTypes extends StatelessWidget {
             );
           },
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _scheduleNotification(context),
+          tooltip: 'Schedule Daily Joke Notification',
+          child: const Icon(Icons.alarm),
+        ),
       ),
     );
   }
@@ -57,6 +63,27 @@ Future displayJokeDetails(BuildContext context) async {
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Error fetching joke of the day!")),
+    );
+  }
+}
+
+Future<void> _scheduleNotification(BuildContext context) async {
+  final TimeOfDay? pickedTime = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay.now(),
+  );
+
+  if (pickedTime != null) {
+    final notificationService =
+        Provider.of<NotificationService>(context, listen: false);
+    await notificationService.scheduleDailyNotification(pickedTime);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Notification scheduled at ${pickedTime.format(context)}",
+        ),
+      ),
     );
   }
 }
