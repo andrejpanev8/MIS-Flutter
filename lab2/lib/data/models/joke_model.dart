@@ -5,12 +5,14 @@ class Joke {
   final JokeType type;
   final String setup;
   final String punchLine;
+  bool isFavorite = false;
 
-  Joke(
-      {required this.id,
-      required this.type,
-      this.setup = "",
-      this.punchLine = ""});
+  Joke({
+    required this.id,
+    required this.type,
+    this.setup = "",
+    this.punchLine = "",
+  });
 
   Joke.fromJson(Map<String, dynamic> data)
       : id = data['id'],

@@ -28,24 +28,39 @@ class JokeTypesProvider with ChangeNotifier {
 }
 
 class JokesProvider with ChangeNotifier {
-  List<Joke> _jokes = [];
+  String? currentType;
+
+  Map<String, List<Joke>> _jokesByType = {};
   Joke? _jokeOfTheDay;
   bool _isLoading = false;
 
-  List<Joke> get jokes => _jokes;
+  List<Joke> get favoriteJokes => _jokesByType.values
+      .expand((jokes) => jokes)
+      .where((joke) => joke.isFavorite)
+      .toList();
+  List<Joke> get jokesByType => _jokesByType[currentType] ?? [];
   Joke? get jokeOfTheDay => _jokeOfTheDay;
   bool get isLoading => _isLoading;
 
   Future<void> fetchJokesByType(JokeType jokeType) async {
+    if (currentType == jokeType.type ||
+        _jokesByType.containsKey(jokeType.type)) {
+      currentType = jokeType.type;
+      notifyListeners();
+      return;
+    }
+
+    currentType = jokeType.type;
     _isLoading = true;
     notifyListeners();
 
     try {
       final data = await ApiService.getJokesForType(jokeType);
-      _jokes = (data)
+      _jokesByType[currentType!] = (data)
           .map((joke) => Joke.fromJson(joke as Map<String, dynamic>))
           .toList();
     } catch (e) {
+      _jokesByType[currentType!] = [];
       print("Error: $e");
     }
 
@@ -57,5 +72,15 @@ class JokesProvider with ChangeNotifier {
     final data = await ApiService.getJokeOfTheDay();
     _jokeOfTheDay = Joke.fromJson(data);
     notifyListeners();
+  }
+
+  void toggleFavorite(Joke joke) {
+    final jokes = _jokesByType.values.expand((jokes) => jokes).toList();
+
+    final index = jokes.indexOf(joke);
+    if (index != -1) {
+      jokes[index].isFavorite = !jokes[index].isFavorite;
+      notifyListeners();
+    }
   }
 }

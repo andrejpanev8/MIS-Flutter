@@ -13,16 +13,18 @@ PreferredSizeWidget customAppBar(
       appBarText ?? "211066",
       style: StyledText().appBarText(),
     ),
-    actions: [
-      TextButton.icon(
-        onPressed: onTap,
-        label: Text(leadingButtonText ?? "", style: StyledText().appBarText()),
-        icon: Icon(
-          Icons.assistant_direction_outlined,
-          color: whiteColor,
-        ),
-      )
-    ],
+    actions: leadingButtonText != null
+        ? [
+            TextButton.icon(
+              onPressed: onTap,
+              label: Text(leadingButtonText, style: StyledText().appBarText()),
+              icon: Icon(
+                Icons.assistant_direction_outlined,
+                color: whiteColor,
+              ),
+            )
+          ]
+        : null,
     backgroundColor: blueDark,
   );
 }

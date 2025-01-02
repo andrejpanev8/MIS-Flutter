@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:lab2/presentation/widgets/custom_app_bar.dart';
-import 'package:lab2/presentation/widgets/joke_details.dart';
-import 'package:lab2/presentation/widgets/joke_type_card.dart';
-import 'package:lab2/providers/jokes_provider.dart';
 import 'package:provider/provider.dart';
 
-import '../../data/models/joke_model.dart';
 import '../../data/services/notification_service.dart';
+import '../../providers/jokes_provider.dart';
+import '../widgets/joke_type_card.dart';
 
 class HomeJokeTypes extends StatelessWidget {
   const HomeJokeTypes({super.key});
@@ -19,13 +16,6 @@ class HomeJokeTypes extends StatelessWidget {
 
     return SafeArea(
       child: Scaffold(
-        appBar: customAppBar(
-          context: context,
-          leadingButtonText: "Joke of the day",
-          onTap: () {
-            displayJokeDetails(context);
-          },
-        ),
         body: Consumer<JokeTypesProvider>(
           builder: (context, provider, child) {
             if (provider.isLoading) {
@@ -53,37 +43,32 @@ class HomeJokeTypes extends StatelessWidget {
       ),
     );
   }
-}
 
-Future displayJokeDetails(BuildContext context) async {
-  try {
-    await context.read<JokesProvider>().fetchJokeOfTheDay();
-    showJokeDetails(
-        context, context.read<JokesProvider>().jokeOfTheDay as Joke);
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error fetching joke of the day!")),
+  Future<void> _scheduleNotification(BuildContext context) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
     );
-  }
-}
 
-Future<void> _scheduleNotification(BuildContext context) async {
-  final TimeOfDay? pickedTime = await showTimePicker(
-    context: context,
-    initialTime: TimeOfDay.now(),
-  );
+    if (pickedTime != null) {
+      final notificationService =
+          Provider.of<NotificationService>(context, listen: false);
 
-  if (pickedTime != null) {
-    final notificationService =
-        Provider.of<NotificationService>(context, listen: false);
-    await notificationService.scheduleDailyNotification(pickedTime);
+      try {
+        await notificationService.scheduleDailyNotification(pickedTime);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          "Notification scheduled at ${pickedTime.format(context)}",
-        ),
-      ),
-    );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Notification scheduled at ${pickedTime.format(context)}",
+            ),
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to schedule notification: $e")),
+        );
+      }
+    }
   }
 }
